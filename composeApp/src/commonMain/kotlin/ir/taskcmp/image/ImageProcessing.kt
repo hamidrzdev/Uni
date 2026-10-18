@@ -30,4 +30,16 @@ object ImageProcessing {
     fun smooth(input: PixelImage, method: SmoothMethod): PixelImage = when (method) {
         SmoothMethod.MEAN_3X3 -> ManualMean3x3Smoother().smooth(input)
     }
+
+    /** Counts grayscale intensities from 0 through 255. */
+    fun histogram(input: PixelImage): IntArray {
+        val bins = IntArray(256)
+        for (color in input.pixels) {
+            val red = color ushr 16 and 0xff
+            val green = color ushr 8 and 0xff
+            val blue = color and 0xff
+            bins[(red + green + blue) / 3]++
+        }
+        return bins
+    }
 }

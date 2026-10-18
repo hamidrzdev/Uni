@@ -25,4 +25,20 @@ class ImageProcessingTest {
         val output = ImageProcessing.smooth(PixelImage(2, 1, pixels), SmoothMethod.MEAN_3X3)
         assertContentEquals(intArrayOf(33, 56), output.pixels.map { it and 0xff }.toIntArray())
     }
+
+    @Test
+    fun histogramCountsEachGrayscaleIntensity() {
+        val image = PixelImage(
+            3,
+            1,
+            intArrayOf(0xff000000.toInt(), 0xff7f7f7f.toInt(), 0xffffffff.toInt()),
+        )
+
+        val histogram = ImageProcessing.histogram(image)
+
+        assertEquals(1, histogram[0])
+        assertEquals(1, histogram[127])
+        assertEquals(1, histogram[255])
+        assertEquals(3, histogram.sum())
+    }
 }

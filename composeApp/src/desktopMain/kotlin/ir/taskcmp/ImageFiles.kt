@@ -1,6 +1,7 @@
 package ir.taskcmp
 
 import androidx.compose.ui.graphics.ImageBitmap
+import com.github.sarxos.webcam.Webcam
 import ir.taskcmp.image.ImageProcessing
 import ir.taskcmp.image.PixelImage
 import org.jetbrains.compose.resources.decodeToImageBitmap
@@ -34,10 +35,28 @@ fun loadImage(file: File): LoadedImage {
     require(buffered.width.toLong() * buffered.height <= 20_000_000L) {
         "تصویر نباید بیشتر از ۲۰ میلیون پیکسل داشته باشد."
     }
+    return loadBufferedImage(file.name, buffered)
+}
+
+fun captureCameraImage(): LoadedImage {
+    val webcam = Webcam.getDefault() ?: throw IllegalStateException("دوربینی در دستگاه پیدا نشد.")
+    try {
+        webcam.open()
+        val image = webcam.image ?: throw IllegalStateException("ثبت تصویر از دوربین انجام نشد.")
+        return loadBufferedImage("عکس دوربین", image)
+    } finally {
+        if (webcam.isOpen) webcam.close()
+    }
+}
+
+private fun loadBufferedImage(fileName: String, buffered: BufferedImage): LoadedImage {
+    require(buffered.width.toLong() * buffered.height <= 20_000_000L) {
+        "تصویر نباید بیشتر از ۲۰ میلیون پیکسل داشته باشد."
+    }
     val pixels = IntArray(buffered.width * buffered.height)
     buffered.getRGB(0, 0, buffered.width, buffered.height, pixels, 0, buffered.width)
     val raw = PixelImage(buffered.width, buffered.height, pixels)
-    return LoadedImage(file.name, raw, ImageProcessing.grayscale(raw), buffered.toImageBitmap())
+    return LoadedImage(fileName, raw, ImageProcessing.grayscale(raw), buffered.toImageBitmap())
 }
 
 fun PixelImage.toImageBitmap(): ImageBitmap {
